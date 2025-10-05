@@ -1,26 +1,41 @@
 import React from "react";
-import { useTheme, Text, Button, Dialog, TextInput, IconButton, Divider, MaterialBottomTabScreenProps } from "react-native-paper";
-import { View, Platform, StyleSheet, Image, useWindowDimensions, Keyboard } from "react-native";
+import {
+  useTheme,
+  Text,
+  Button,
+  Dialog,
+  TextInput,
+  IconButton,
+  Divider,
+  MaterialBottomTabScreenProps,
+} from "react-native-paper";
+import {
+  View,
+  Platform,
+  StyleSheet,
+  Image,
+  useWindowDimensions,
+  Keyboard,
+} from "react-native";
 import { Buffer } from "buffer";
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import * as Global from "../Global";
 import * as URL from "../URL";
 import * as I18N from "../i18n";
 import { Captcha, RootStackParamList } from "../types";
 import VerticalView from "../components/VerticalView";
 import { STATUS_BAR_HEIGHT } from "../assets/styles";
-import splash from '../assets/splash.png';
+import splash from "../assets/splash.png";
 
-const i18n = I18N.getI18n()
+const i18n = I18N.getI18n();
 const APP_URL = Linking.createURL("");
 const IMAGE_HEADER = "data:image/webp;base64,";
 
 WebBrowser.maybeCompleteAuthSession();
 
-type Props = MaterialBottomTabScreenProps<RootStackParamList, 'Login'>
-const Login = ({route: _r, navigation: _n}: Props) => {
-
+type Props = MaterialBottomTabScreenProps<RootStackParamList, "Login">;
+const Login = ({ route: _r, navigation: _n }: Props) => {
   const { colors } = useTheme();
 
   const [email, setEmail] = React.useState("");
@@ -33,7 +48,10 @@ const Login = ({route: _r, navigation: _n}: Props) => {
 
   //vars for dialog
   const [visible, setVisible] = React.useState(false);
-  const showDialog = () => {setVisible(true); Keyboard.dismiss()};
+  const showDialog = () => {
+    setVisible(true);
+    Keyboard.dismiss();
+  };
   const hideDialog = () => setVisible(false);
   const { height } = useWindowDimensions();
 
@@ -41,9 +59,8 @@ const Login = ({route: _r, navigation: _n}: Props) => {
     load();
   }, []);
 
-  const _handleRedirect = async (event: { url: string; }) => {
-
-    if (Platform.OS === 'ios') {
+  const _handleRedirect = async (event: { url: string }) => {
+    if (Platform.OS === "ios") {
       WebBrowser.dismissBrowser();
     }
 
@@ -56,7 +73,10 @@ const Login = ({route: _r, navigation: _n}: Props) => {
       await Global.Fetch(Global.format(URL.AUTH_COOKIE, rememberMe, sessionId));
       await Global.SetStorage(Global.STORAGE_FIRSTNAME, firstName);
       await Global.SetStorage(Global.STORAGE_PAGE, page);
-      await Global.SetStorage(Global.STORAGE_LOGIN_DATE, new Date().toISOString());
+      await Global.SetStorage(
+        Global.STORAGE_LOGIN_DATE,
+        new Date().toISOString()
+      );
       Global.loadPage(page);
     }
   };
@@ -71,23 +91,35 @@ const Login = ({route: _r, navigation: _n}: Props) => {
   };
 
   const loginGoogle = async () => {
-    let e = Linking.addEventListener('url', _handleRedirect);
-    let res = await WebBrowser.openAuthSessionAsync(URL.AUTH_GOOGLE + "/" + Buffer.from(APP_URL).toString('base64'));
+    let e = Linking.addEventListener("url", _handleRedirect);
+    let res = await WebBrowser.openAuthSessionAsync(
+      URL.AUTH_GOOGLE + "/" + Buffer.from(APP_URL).toString("base64")
+    );
     e.remove();
 
     //_handleRedirect does not work on iOS and web, get url directly from WebBrowser.openAuthSessionAsync result instead
-    if ((Platform.OS === 'ios' || Platform.OS === 'web') && res.type === "success" && res.url) {
+    if (
+      (Platform.OS === "ios" || Platform.OS === "web") &&
+      res.type === "success" &&
+      res.url
+    ) {
       _handleRedirect({ url: res.url });
     }
   };
 
   const loginFacebook = async () => {
-    let e = Linking.addEventListener('url', _handleRedirect);
-    let res = await WebBrowser.openAuthSessionAsync(URL.AUTH_FACEBOOK + "/" + Buffer.from(APP_URL).toString('base64'));
+    let e = Linking.addEventListener("url", _handleRedirect);
+    let res = await WebBrowser.openAuthSessionAsync(
+      URL.AUTH_FACEBOOK + "/" + Buffer.from(APP_URL).toString("base64")
+    );
     e.remove();
 
     //_handleRedirect does not work on iOS and web, get url directly from WebBrowser.openAuthSessionAsync result instead
-    if ((Platform.OS === 'ios' || Platform.OS === 'web') && res.type === "success" && res.url) {
+    if (
+      (Platform.OS === "ios" || Platform.OS === "web") &&
+      res.type === "success" &&
+      res.url
+    ) {
       _handleRedirect({ url: res.url });
     }
   };
@@ -97,29 +129,45 @@ const Login = ({route: _r, navigation: _n}: Props) => {
       hideDialog();
       let redirectUrl = APP_URL ? APP_URL : await Linking.getInitialURL();
       if (!redirectUrl) {
-        Global.ShowToast(i18n.t('error.generic'));
+        Global.ShowToast(i18n.t("error.generic"));
         return;
       }
-      let url = URL.AUTH_LOGIN + "?username=" + encodeURIComponent(email) +
-        "&password=" + encodeURIComponent(password) +
+      let url =
+        URL.AUTH_LOGIN +
+        "?username=" +
+        encodeURIComponent(email) +
+        "&password=" +
+        encodeURIComponent(password) +
         "&remember-me=" +
-        "&redirect-url=" + Buffer.from(redirectUrl).toString('base64') +
-        "&captchaId=" + captchaId +
-        "&captchaText=" + captchaText;
+        "&redirect-url=" +
+        Buffer.from(redirectUrl).toString("base64") +
+        "&captchaId=" +
+        captchaId +
+        "&captchaText=" +
+        captchaText;
       try {
-        let res = await Global.Fetch(url, 'post', {}, "application/x-www-form-urlencoded");
-        let redirectHeader = res.headers['redirect-url'];
+        let res = await Global.Fetch(
+          url,
+          "post",
+          {},
+          "application/x-www-form-urlencoded"
+        );
+        let redirectHeader = res.headers["redirect-url"];
         if (!redirectHeader) {
           redirectHeader = res.data;
         }
-        if (res.request?.responseURL && res.request?.responseURL !== URL.AUTH_LOGIN_ERROR && redirectHeader) {
+        if (
+          res.request?.responseURL &&
+          res.request?.responseURL !== URL.AUTH_LOGIN_ERROR &&
+          redirectHeader
+        ) {
           _handleRedirect({ url: redirectHeader });
         } else {
-          Global.ShowToast(i18n.t('error.generic'));
+          Global.ShowToast(i18n.t("error.generic"));
         }
       } catch (e) {
         console.error(e);
-        Global.ShowToast(i18n.t('error.generic'));
+        Global.ShowToast(i18n.t("error.generic"));
       }
     }
   };
@@ -139,47 +187,61 @@ const Login = ({route: _r, navigation: _n}: Props) => {
     link: {
       color: colors.primary,
       flex: 1,
-      marginBottom: 4
+      marginBottom: 4,
     },
     button: {
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       paddingVertical: 12,
       paddingHorizontal: 32,
       borderRadius: 4,
       elevation: 3,
-      backgroundColor: 'blue',
+      backgroundColor: "blue",
       margin: 4,
-      flexDirection: 'row'
+      flexDirection: "row",
     },
     buttonGoogle: {
-      backgroundColor: '#4285f4',
+      backgroundColor: "#4285f4",
     },
     buttonFacebook: {
-      backgroundColor: '#4267b2',
+      backgroundColor: "#4267b2",
     },
     buttonText: {
-      color: 'white'
+      color: "white",
     },
     icon: {
-      marginRight: 8
-    }
+      marginRight: 8,
+    },
   });
 
   return (
     <VerticalView style={{ paddingTop: STATUS_BAR_HEIGHT }}>
-      {!loading &&
-        <View >
+      {!loading && (
+        <View>
           <View style={{ minHeight: height }}>
-            <Image resizeMode='contain' style={{ height: 200, width: '100%', marginTop: 24 }} source={splash} />
+            <Image
+              resizeMode="contain"
+              style={{ height: 200, width: "100%", marginTop: 24 }}
+              source={splash}
+            />
 
-            <Text style={{ textAlign: 'center', marginBottom: 48, marginTop: 24, fontSize: 32, fontWeight: '500' }}>Alovoa</Text>
+            <Text
+              style={{
+                textAlign: "center",
+                marginBottom: 48,
+                marginTop: 24,
+                fontSize: 32,
+                fontWeight: "500",
+              }}
+            >
+              SweetLove KR – Trial
+            </Text>
 
             <TextInput
               style={{ backgroundColor: colors.background }}
-              label={i18n.t('email')}
+              label={i18n.t("email")}
               value={email}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setEmail(text);
                 setEmailValid(Global.isEmailValid(text));
               }}
@@ -188,69 +250,113 @@ const Login = ({route: _r, navigation: _n}: Props) => {
             />
             <TextInput
               style={{ backgroundColor: colors.background }}
-              label={i18n.t('password')}
+              label={i18n.t("password")}
               value={password}
-              onChangeText={text => setPassword(text)}
+              onChangeText={(text) => setPassword(text)}
               onSubmitEditing={emailSignInPress}
               autoCapitalize="none"
               secureTextEntry={true}
             />
 
-            <Button icon="email" mode="contained" style={{ marginTop: 18 }} onPress={emailSignInPress}>
-              <Text style={style.buttonText}>{i18n.t('auth.email')}</Text>
+            <Button
+              icon="email"
+              mode="contained"
+              style={{ marginTop: 18 }}
+              onPress={emailSignInPress}
+            >
+              <Text style={style.buttonText}>{i18n.t("auth.email")}</Text>
             </Button>
 
             <View style={{ paddingBottom: 38 }}></View>
 
-            <Button icon="google" mode="contained" style={[style.buttonGoogle]}
+            <Button
+              icon="google"
+              mode="contained"
+              style={[style.buttonGoogle]}
               onPress={() => {
                 loginGoogle();
               }}
-            ><Text style={style.buttonText}>{i18n.t('auth.google')}</Text></Button>
-            <Button icon="facebook" mode="contained" style={[style.buttonFacebook, { marginTop: 8 }]}
+            >
+              <Text style={style.buttonText}>{i18n.t("auth.google")}</Text>
+            </Button>
+            <Button
+              icon="facebook"
+              mode="contained"
+              style={[style.buttonFacebook, { marginTop: 8 }]}
               onPress={() => {
                 loginFacebook();
               }}
-            ><Text style={style.buttonText}>{i18n.t('auth.facebook')}</Text></Button>
+            >
+              <Text style={style.buttonText}>{i18n.t("auth.facebook")}</Text>
+            </Button>
 
-            <Divider style={{margin: height >= 800? 48 : 18}} />
+            <Divider style={{ margin: height >= 800 ? 48 : 18 }} />
             <View>
-              <Button style={{backgroundColor: "#757575"}} onPress={() => {
-                Global.navigate("Register", false, { registerEmail: true });
-              }}><Text style={style.buttonText}>{i18n.t('register-email')}</Text></Button>
+              <Button
+                style={{ backgroundColor: "#757575" }}
+                onPress={() => {
+                  Global.navigate("Register", false, { registerEmail: true });
+                }}
+              >
+                <Text style={style.buttonText}>{i18n.t("register-email")}</Text>
+              </Button>
             </View>
           </View>
 
           <View style={{ marginTop: 64 }}>
-            <Text style={style.link} onPress={() => {
-              Global.navigate("PasswordReset", false, {});
-            }}>{i18n.t('password-forget')}</Text>
+            <Text
+              style={style.link}
+              onPress={() => {
+                Global.navigate("PasswordReset", false, {});
+              }}
+            >
+              {i18n.t("password-forget")}
+            </Text>
           </View>
 
           <View style={{ marginTop: 24 }}>
-            <Text style={style.link} onPress={() => {
-              WebBrowser.openBrowserAsync(URL.PRIVACY);
-            }}>{i18n.t('privacy-policy')}</Text>
-            <Text style={style.link} onPress={() => {
-              WebBrowser.openBrowserAsync(URL.TOS);
-            }}>{i18n.t('tos')}</Text>
-            <Text style={style.link} onPress={() => {
-              WebBrowser.openBrowserAsync(URL.IMPRINT);
-            }}>{i18n.t('imprint')}</Text>
+            <Text
+              style={style.link}
+              onPress={() => {
+                WebBrowser.openBrowserAsync(URL.PRIVACY);
+              }}
+            >
+              {i18n.t("privacy-policy")}
+            </Text>
+            <Text
+              style={style.link}
+              onPress={() => {
+                WebBrowser.openBrowserAsync(URL.TOS);
+              }}
+            >
+              {i18n.t("tos")}
+            </Text>
+            <Text
+              style={style.link}
+              onPress={() => {
+                WebBrowser.openBrowserAsync(URL.IMPRINT);
+              }}
+            >
+              {i18n.t("imprint")}
+            </Text>
           </View>
           <View style={{ paddingBottom: 38 }}></View>
         </View>
-      }
+      )}
 
       <Dialog visible={visible} onDismiss={hideDialog}>
-        <Dialog.Title>{i18n.t('captcha.title')}</Dialog.Title>
+        <Dialog.Title>{i18n.t("captcha.title")}</Dialog.Title>
         <Dialog.Content>
-          <Image resizeMode='contain' style={{ height: 100 }} source={{ uri: captchaImage }} />
+          <Image
+            resizeMode="contain"
+            style={{ height: 100 }}
+            source={{ uri: captchaImage }}
+          />
           <TextInput
             mode="outlined"
-            label={i18n.t('captcha.placeholder')}
+            label={i18n.t("captcha.placeholder")}
             value={captchaText}
-            onChangeText={text => setCaptchaText(text)}
+            onChangeText={(text) => setCaptchaText(text)}
             onSubmitEditing={loginEmail}
           />
         </Dialog.Content>
@@ -259,18 +365,22 @@ const Login = ({route: _r, navigation: _n}: Props) => {
             icon="reload"
             iconColor={colors.primary}
             size={20}
-            onPress={() => { emailSignInPress() }}
+            onPress={() => {
+              emailSignInPress();
+            }}
           />
           <IconButton
             icon="login-variant"
             iconColor={colors.primary}
             size={20}
-            onPress={() => { loginEmail() }}
+            onPress={() => {
+              loginEmail();
+            }}
           />
         </Dialog.Actions>
       </Dialog>
     </VerticalView>
-  )
+  );
 };
 
 export default Login;
